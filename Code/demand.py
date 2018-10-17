@@ -2,7 +2,7 @@
 import requests
 import gridnames
 import time
-from datetime import datetime
+from datetime import datetime as dt
 import pandas as pd
 from pprint import pprint
 
@@ -44,10 +44,12 @@ def pullAllDemand():
 
         grid_df = pd.DataFrame({
             'name': name_list,
-            'date': date_list,
+            'datetime': date_list,
             'demand': mg_list
         })
-        grid_df['date'] = pd.to_datetime(grid_df['date'])
+        grid_df['datetime'] = pd.to_datetime(grid_df['datetime'])
+        grid_df['date'] = grid_df['datetime'].dt.date
+        grid_df['hour'] = grid_df['datetime'].dt.hour
         #grid_df.to_csv('demand.csv')
         grid_df.to_sql('demand', con = engine, if_exists='append', index=False)
 
@@ -78,14 +80,17 @@ def pullDayAheadDemand():
 
         dayahead_df = pd.DataFrame({
             'name': name_list,
-            'date': date_list,
+            'datetime': date_list,
             'demand': mg_list
         })
-        dayahead_df['date'] = pd.to_datetime(dayahead_df['date'])
+        dayahead_df['datetime'] = pd.to_datetime(dayahead_df['datetime'])
+        dayahead_df['date'] = dayahead_df['datetime'].dt.date
+        dayahead_df['hour'] = dayahead_df['datetime'].dt.hour
+        
         #grid_df.to_csv('demand.csv')
         dayahead_df.to_sql('day_ahead_demand', con = engine, if_exists='append', index=False)
 
-    return("day ahead deman pull done!!")
+    return("day ahead demand pull done!!")
 
 print(pullAllDemand())
 print(pullDayAheadDemand())
