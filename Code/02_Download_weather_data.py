@@ -32,6 +32,7 @@ the code below:
     4. Fix date and time issues  
         
 """
+import numpy as np
 import pandas as pd
 import urllib.request  
 import io
@@ -56,6 +57,7 @@ plt.style.use('bmh')
 
 # A. Read in data
 url = "https://www1.ncdc.noaa.gov/pub/data/noaa/isd-history.csv"
+
 stations = pd.read_csv(url)
 stations.head()
 
@@ -145,10 +147,14 @@ for station in stationlist:
         except: 
             print(f'File {station}-{year} was NOT added ' + str(datetime.datetime.now().time()))   
 
-# D. Convert temperature from Celcius to Fahrenheit 
-weatherdata.tempc = weatherdata.tempc/100
+# D. Clean up empty values (marked as 9999)
+for var in ["windir", "windspeed", "skycond", "tempc", "dewpoint"]:
+    weatherdata[var] = weatherdata[var].replace( {9999: np.nan}) 
+
+# E. Convert temperature from Celcius to Fahrenheit 
+weatherdata.tempc = weatherdata.tempc/10
 weatherdata['tempf'] = 32 + (weatherdata.tempc * 9/5)                
-weatherdata['dewpoint'] = 32 + (weatherdata.dewpoint/100 * 9/5)   
+weatherdata['dewpoint'] = 32 + (weatherdata.dewpoint/10 * 9/5)   
 
 # =============================================================================
 # 04 Fix Date/Time Issues and save 
@@ -215,4 +221,8 @@ outfile = "../Data/2016-2018_Weather_all_stations_fixed.csv"
 weatherdata.to_csv(outfile)
 
 
+#H. Export Boston weather for testing
+ma_weather = weatherdata.loc[weatherdata.usaf == 725090]
+outfile = "../Data/2016-2018_MA_weather_data.csv"
+ma_weather.to_csv(outfile)
 
