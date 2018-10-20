@@ -8,6 +8,7 @@ Created on Sat Oct 20 10:44:26 2018
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 plt.style.use('bmh')
 
 # =============================================================================
@@ -23,7 +24,7 @@ data = data.rename(columns = {"value": "mw"})
 #B. Adjust for time zone 
 data['datetime'] = pd.to_datetime(data.datetime)  # Convert to datetime object
 data.datetime.asfreq("H")  #  informs data is hourly
-data['datetime2'] = data.datetime.dt.tz_localize('UTC').dt.tz_convert('US/Eastern')
+data['datetime'] = data.datetime.dt.tz_localize('UTC').dt.tz_convert('US/Eastern')
 
 #C. Summarize dataset info
 data.dtypes
@@ -72,13 +73,39 @@ data['tempf_weeklag'] = data.tempf.rolling(168).mean()
 peak = data.groupby('date')['mw'].max()
 avgtemp = data.groupby('date')['tempf'].mean()
 
-
 sns.regplot(avgtemp, peak, lowess = True, color = (0,0.6,0.8, 0.6))
 plt.ylabel('Daily Peak Demand')
 plt.xlabel('Daily Avg. Temp')
 plt.figure(figsize =[800, 200])
 plt.show()
 
+#B. Hourly load by temperature bins
+#Crate max temp bins
+bins = list(range(5,105,5))
+names = []
+for bin in bins:
+    lb = bin-5
+    name = f'{lb} to {bin}F' 
+    print(name)
+    names.append(name)
+del names[0]   
+   
+bindata = data.loc[data.tempf_peak>=60].pivot_table(
+        index = 'hour', columns = 'bins_maxtemp', values = 'mw', aggfunc = 'mean')
 
 
+bindata.plot()
+plt.xlabel("Hour of day")
+plt.ylabel("Demand (MW)") 
+plt.xticks(np.arange(0,25,3))
+plt.show()
 
+#C. Load duration curve
+
+data['rank'] = data.mw.rank(method= 'first', ascending=False)
+data['pctrank'] = data.mw.rank(method= 'first', ascending=False, pct = True)
+
+data.loc[data.pctrank < 0.05].plot.line(x = 'pctrank', y = 'mw')
+plt.xlabel("% of hours ranked from highest to lowest")
+plt.ylabel("Demand (MW)") 
+plt.show()
