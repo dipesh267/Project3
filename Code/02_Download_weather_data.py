@@ -65,7 +65,9 @@ stations.head()
 stations = stations.loc[stations["CTRY"] == "US", : ]  # US only
 stations = stations.loc[((stations["STATE"] != "HI") &
                         (stations["STATE"] != "AK")), : ]  # Continental US only
-stations['airport'] = (stations["STATION NAME"].str.contains('INTERNATIONAL AIRPORT'))
+stations['airport'] = ((stations["STATION NAME"].str.contains('INTERNATIONAL AIRPORT')) |
+        (stations["STATION NAME"].str.contains('REGIONAL AIRPORT')))
+
 stations = stations.loc[stations.airport == True, :] # Narrow down to major airports
 stations = stations.loc[stations['BEGIN'] <= 20150101,  : ]  # Narrow to sites with a good history
 stations = stations.loc[stations['END'] > 20180930,  : ]  # Narrow to sites with current data
