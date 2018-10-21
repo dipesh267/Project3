@@ -1,6 +1,7 @@
 # Dependencies
 import requests
-import gridnames
+import stations
+import subtract_from_utc
 import time
 from datetime import datetime as dt
 import pandas as pd
@@ -15,7 +16,11 @@ from sqlalchemy import Column, Integer, String, Float, Boolean
 from sqlalchemy.orm import Session
 
 
-station_names = gridnames.stations
+station_names = stations.stations
+local = subtract_from_utc.local_time
+# print(station_names[1][3])
+# for station in station_names:
+#     print(local.get(station[0]))
 #station_names = ['AVA']
 engine = create_engine("sqlite:///../Data/megawatt.sqlite")
 
@@ -23,7 +28,10 @@ def pullAllDemand():
     grid_df = pd.DataFrame()
 
     for station in station_names:
-        url = "http://api.eia.gov/series/?api_key=b2416f9351f1bc487d7de96e1a731aab&series_id=EBA."+station+"-ALL.D.H"
+        st_name = station[3]
+        subtract_from_utc = local.get(station[0])
+
+        url = "http://api.eia.gov/series/?api_key=b2416f9351f1bc487d7de96e1a731aab&series_id=EBA."+st_name+"-ALL.D.H"
         api_call = requests.get(url)
         response = api_call.json()
 
@@ -47,7 +55,8 @@ def pullAllDemand():
             'datetime': date_list,
             'demand': mg_list
         })
-        grid_df['datetime'] = pd.to_datetime(grid_df['datetime'])
+        grid_df['datetime_utc'] = pd.to_datetime(grid_df['datetime'])
+        grid_df['datetime'] = grid_df['datetime_utc'] - pd.Timedelta(hours=subtract_from_utc)
         grid_df['date'] = grid_df['datetime'].dt.date
         grid_df['hour'] = grid_df['datetime'].dt.hour
         #grid_df.to_csv('demand.csv')
@@ -59,7 +68,10 @@ def pullDayAheadDemand():
     dayahead_df = pd.DataFrame()
 
     for station in station_names:
-        url = "http://api.eia.gov/series/?api_key=b2416f9351f1bc487d7de96e1a731aab&series_id=EBA."+station+"-ALL.DF.H"
+        st_name = station[3]
+        subtract_from_utc = local.get(station[0])
+
+        url = "http://api.eia.gov/series/?api_key=b2416f9351f1bc487d7de96e1a731aab&series_id=EBA."+st_name+"-ALL.DF.H"
         api_call = requests.get(url)
         response = api_call.json()
 
@@ -83,7 +95,8 @@ def pullDayAheadDemand():
             'datetime': date_list,
             'demand': mg_list
         })
-        dayahead_df['datetime'] = pd.to_datetime(dayahead_df['datetime'])
+        dayahead_df['datetime_utc'] = pd.to_datetime(dayahead_df['datetime'])
+        dayahead_df['datetime'] = dayahead_df['datetime_utc'] - pd.Timedelta(hours=subtract_from_utc)
         dayahead_df['date'] = dayahead_df['datetime'].dt.date
         dayahead_df['hour'] = dayahead_df['datetime'].dt.hour
         
