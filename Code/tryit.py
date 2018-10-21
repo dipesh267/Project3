@@ -76,7 +76,7 @@ names = ["usaf", "wban", "date", "time", "windir", "windspeed",
 for station in st_data_fetch:
     for year in years:
         
-        filepath = f"../Data/{station}-{year}.txt"
+        filepath = f"{station}-{year}.txt"
 
         try: 
             
@@ -87,67 +87,4 @@ for station in st_data_fetch:
            
         except: 
             print(f'File {station}-{year} was NOT added ' + str(datetime.datetime.now().time()))   
-
-# D. Clean up empty values (marked as 9999)
-for var in ["windir", "windspeed", "skycond", "tempc", "dewpoint"]:
-    weatherdata[var] = weatherdata[var].replace( {9999: np.nan}) 
-
-# E. Convert temperature from Celcius to Fahrenheit 
-weatherdata.tempc = weatherdata.tempc/10
-weatherdata['tempf'] = 32 + (weatherdata.tempc * 9/5)                
-weatherdata['dewpoint'] = 32 + (weatherdata.dewpoint/10 * 9/5)   
-
-# =============================================================================
-# 04 Fix Date/Time Issues and save 
-# =============================================================================
-
-#A. Create a datetime variable
-
-# Extract time components
-weatherdata['time'] = weatherdata['time'].astype(str)
-weatherdata['time'] = weatherdata['time'].str.pad(4, side = 'left', fillchar = "0" )
-weatherdata['hh'] = weatherdata['time'].str.slice(start = 0, stop = 2)
-weatherdata['mm'] = weatherdata['time'].str.slice(start = 2, stop = 4)
-
-# Extract date components
-weatherdata['date'] = weatherdata['date'].astype(str)
-weatherdata['year'] = weatherdata['date'].str.slice(start = 0, stop = 4)
-weatherdata['month'] = weatherdata['date'].str.slice(start = 4, stop = 6)
-weatherdata['day'] = weatherdata['date'].str.slice(start = 6, stop = 8)
-
-# Create date time variable and round to the nearest hour
-weatherdata['datetime'] = (weatherdata.month + "-" +
-           weatherdata.day + "-" + weatherdata.year + " " +
-           weatherdata.hh + ":" + weatherdata.mm ) 
-
-weatherdata.drop( columns = ['date', 'time', 'year', 'month', 'day', 
-                             'hh', 'mm'], inplace = True) # Drop unneeded columns
-
-weatherdata['datetime'] = pd.to_datetime(weatherdata.datetime)  # Convert to datetime object
-
-#B.  Round to the nearest hour
-weatherdata['datetime'] = weatherdata['datetime'].dt.round("H")
-
-#C.  Remove duplicates
-weatherdata.drop_duplicates(subset=['datetime', 'usaf', 'wban'], inplace= True )
-
-#D. Check if we need to adjust weather for time zones and, if so, do so
-
-oneday  = weatherdata.loc[((weatherdata['datetime'] > '2018-7-18 01:00:00') & 
-                         (weatherdata['datetime'] < '2018-7-19 01:00:00') &
-                         (weatherdata.usaf == 724880))] 
-oneday.plot("datetime", "tempf")    
-# Need to adjust for time zone
-
-#G. Save - Need to decide is this is SQL file or csv
-outfile = "../Data/2016-2018_Weather_all_stations_fixed.csv"
-weatherdata.to_csv(outfile)
-
-
-#H. Export Boston weather for testing
-ma_weather = weatherdata.loc[weatherdata.usaf == 725090]
-outfile = "../Data/2016-2018_MA_weather_data.csv"
-ma_weather.to_csv(outfile)
-
-
-
+print(weatherdata.head())
