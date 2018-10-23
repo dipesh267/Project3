@@ -7,6 +7,9 @@ from datetime import datetime as dt
 import pandas as pd
 from pprint import pprint
 
+import stations
+
+
 # Imports the method used for connecting to DBs
 from sqlalchemy import create_engine, inspect
 
