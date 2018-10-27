@@ -41,6 +41,6 @@ def createMergeFile(startDate, EndDate, weatherData, gridname):
 
     whatdf = pd.merge(newdf, raw_listings_df, on='datetime_utc',how='inner')
 
-    whatdf.to_csv('wtf.csv')
+    whatdf.to_csv('mergedSample.csv')
 
 createMergeFile('2017-01-01','2018-12-01','2016-2018_MA_weather_data.csv','AZPS')
