@@ -2,6 +2,6 @@
 *.sqlite
 .ipynb_checkpoints
 Modeling_results_predicted_v_actuals.csv
-final_results.csv
+Modeling_results_predicted_v_actuals_cleaned.csv
 2016-2018_Weather_all_stations_fixed.csv
 final_merged.csv
